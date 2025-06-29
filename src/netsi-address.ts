@@ -1,23 +1,45 @@
-// Type definitions based on PRD.md and DAWA API structure
-
+/**
+ * Defines the shape of a mapper function used in the UI configuration.
+ * @param value - The specific value from the address data.
+ * @param fullObject - The complete DawaAddress object.
+ * @returns The string to be placed in the UI element.
+ */
 type MapperFunction = (value: any, fullObject: DawaAddress) => string;
 
+/**
+ * Represents how a piece of address data is mapped to a UI element.
+ * It can be a simple CSS selector string or an object with a selector and a custom mapper function.
+ */
 type UiMapping = string | {
   selector: string;
   mapper: MapperFunction;
 };
 
+/**
+ * Defines the UI configuration for mapping address data to DOM elements.
+ * The `address` property is mandatory and serves as the main input for the component.
+ */
 interface UiConfig {
-  address: string; // This is mandatory.
+  /** The CSS selector for the main address input field. This is required. */
+  address: string;
   [key: string]: UiMapping | undefined;
 }
 
+/**
+ * Main configuration object for the NetsiAddress component.
+ */
 interface NetsiConfig {
+  /** UI mapping configuration. */
   ui?: Partial<UiConfig>;
+  /** Whether to use a fuzzy search as a fallback if no exact matches are found. */
   useFuzzyFallback?: boolean;
-  [key: string]: any; // Allows any other key for URL parameters.
+  /** Any other keys are treated as URL parameters for the DAWA API request. */
+  [key: string]: any;
 }
 
+/**
+ * Represents a complete address object from the DAWA API.
+ */
 interface DawaAddress {
   id: string;
   href: string;
@@ -32,16 +54,34 @@ interface DawaAddress {
   [key: string]: any;
 }
 
+/**
+ * Represents a single suggestion in the autocomplete list.
+ */
 interface Suggestion {
+  /** The text to display for the suggestion. */
   tekst: string;
+  /** The full address object associated with the suggestion. */
   adresse: DawaAddress;
+  /** Optional flag indicating if the suggestion is from a fuzzy search. */
   isFuzzy?: boolean;
 }
 
+/**
+ * The detail object for the 'netsi-address:select' event.
+ */
 interface SelectEventDetail {
+  /** The selected address object. */
   address: DawaAddress;
 }
 
+/**
+ * Creates a debounced function that delays invoking `func` until after `delay` milliseconds
+ * have elapsed since the last time the debounced function was invoked.
+ *
+ * @param func The function to debounce.
+ * @param delay The number of milliseconds to delay.
+ * @returns The new debounced function.
+ */
 function debounce<T extends (...args: any[]) => void>(func: T, delay = 350): T {
   let timeoutId: number | undefined;
   return function (this: any, ...args: Parameters<T>) {
@@ -50,6 +90,31 @@ function debounce<T extends (...args: any[]) => void>(func: T, delay = 350): T {
   } as T;
 }
 
+/**
+ * A custom element for address lookup and autocompletion using the Danish Address API (DAWA).
+ *
+ * @example
+ * ```html
+ * <netsi-address id="my-address"></netsi-address>
+ * <input type="text" id="address" placeholder="Start typing an address...">
+ * ```
+ *
+ * @example
+ * ```javascript
+ * const addressElement = document.getElementById('my-address');
+ * addressElement.config = {
+ *   ui: {
+ *     address: '#address',
+ *     'adgangsadresse.vejstykke.navn': '#vejnavn',
+ *     'adgangsadresse.husnr': '#husnr',
+ *   },
+ *   useFuzzyFallback: true
+ * };
+ * ```
+ *
+ * @fires netsi-address:select - Dispatched when an address is selected from the suggestion list.
+ * The event detail contains the selected address object.
+ */
 class NetsiAddress extends HTMLElement {
   private _config!: NetsiConfig;
   private _inputEl: HTMLInputElement | null = null;
@@ -85,6 +150,11 @@ class NetsiAddress extends HTMLElement {
     super();
   }
 
+  /**
+   * Sets the configuration for the component.
+   * Merges the provided configuration with the default values.
+   * @param newConfig - The configuration object.
+   */
   set config(newConfig: NetsiConfig) {
     this._config = {
       ...NetsiAddress._defaults,
@@ -259,7 +329,10 @@ class NetsiAddress extends HTMLElement {
       case "Enter":
         e.preventDefault();
         if (this._highlightedIndex > -1) {
-          items[this._highlightedIndex].click();
+          const suggestions = Array.from(
+            this._suggestionsEl.querySelectorAll("li"),
+          ).map((li) => JSON.parse(li.dataset.suggestion || "{}"));
+          this.select(suggestions[this._highlightedIndex]);
         }
         break;
       case "Escape":
@@ -269,143 +342,127 @@ class NetsiAddress extends HTMLElement {
   }
 
   private _handleClickOutside(e: MouseEvent): void {
-    const target = e.target as Node | null;
     if (
-      target &&
-      this._suggestionsEl &&
-      target !== this._inputEl &&
-      !this._suggestionsEl.contains(target)
+      this._suggestionsEl && !this._suggestionsEl.contains(e.target as Node) &&
+      this._inputEl && !this._inputEl.contains(e.target as Node)
     ) {
       this._hideSuggestions();
     }
   }
 
   private _buildQueryParameters(isFuzzy = false): URLSearchParams {
-    const params = new URLSearchParams();
-    const query = this._inputEl?.value.trim();
-    if (query) {
-      params.set("q", query);
-    }
+    const params = new URLSearchParams({
+      q: this._inputEl!.value,
+      type: "adresse",
+      per_side: "10",
+      ...(isFuzzy && { fuzzy: "" }),
+    });
 
-    for (const key in this._config) {
-      if (
-        key === "ui" || key === "useFuzzyFallback" ||
-        !Object.prototype.hasOwnProperty.call(this._config, key)
-      ) continue;
-      params.set(key, String(this._config[key]));
-    }
+    Object.entries(this._config).forEach(([key, value]) => {
+      if (key !== "ui" && key !== "useFuzzyFallback") {
+        params.append(key, String(value));
+      }
+    });
 
-    if (isFuzzy) {
-      params.set("fuzzy", "true");
-    }
     return params;
   }
 
   private async _fetchData(params: URLSearchParams): Promise<Suggestion[]> {
-    const API_URL = "https://api.dataforsyningen.dk/adresser/autocomplete";
-    const requestUrl = `${API_URL}?${params.toString()}`;
-    const response = await fetch(requestUrl, {
-      signal: this._abortController?.signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.statusText}`);
-    }
-    return response.json();
-  }
-
-  async lookup(): Promise<void> {
     this._abortController?.abort();
     this._abortController = new AbortController();
-    const query = this._inputEl?.value.trim();
 
-    if (!query) {
-      this._renderSuggestions([]);
+    const response = await fetch(
+      `https://api.dataforsyningen.dk/adresser/autocomplete?${params.toString()}`,
+      { signal: this._abortController.signal },
+    );
+    if (!response.ok) throw new Error("Network response was not ok.");
+    return (await response.json()).map((s: any) => ({ ...s, isFuzzy: params.has("fuzzy") }));
+  }
+
+  /**
+   * Performs the address lookup based on the current input value.
+   * Fetches data from the DAWA API and renders the suggestions.
+   */
+  async lookup(): Promise<void> {
+    if (!this._inputEl || this._inputEl.value.length < 2) {
+      this._hideSuggestions();
       return;
     }
 
     try {
-      let params = this._buildQueryParameters(false);
-      let data = await this._fetchData(params);
+      const mainParams = this._buildQueryParameters();
+      let suggestions = await this._fetchData(mainParams);
 
-      if (data.length === 0 && this._config.useFuzzyFallback) {
-        params = this._buildQueryParameters(true);
-        data = await this._fetchData(params);
-        if (data.length > 0) {
-          data.forEach((item) => (item.isFuzzy = true));
-        }
+      if (suggestions.length === 0 && this._config.useFuzzyFallback) {
+        const fuzzyParams = this._buildQueryParameters(true);
+        suggestions = await this._fetchData(fuzzyParams);
       }
-      this._renderSuggestions(data);
-    } catch (error) {
-      if (error instanceof Error && error.name !== "AbortError") {
-        console.error("NetsiAddress lookup failed:", error);
+      
+      this._renderSuggestions(suggestions);
+
+    } catch (error: any) {
+      if (error.name !== "AbortError") {
+        console.error("NetsiAddress: Error fetching address data:", error);
+        this._hideSuggestions();
       }
     }
   }
 
+  /**
+   * Selects an address from the suggestions.
+   * Populates the UI fields and dispatches a custom event.
+   * @param item - The suggestion item to select.
+   */
   async select(item: Suggestion): Promise<void> {
-    if (!item?.adresse) return;
-    let addressData: DawaAddress = item.adresse;
-
-    if (!addressData.adgangsadresse?.kommune && addressData.href) {
-      try {
-        const response = await fetch(addressData.href);
-        if (!response.ok) {
-          throw new Error("Failed to fetch full address details.");
-        }
-        addressData = await response.json();
-      } catch (error) {
-        console.error("NetsiAddress select failed:", error);
-        return;
-      }
-    }
-
-    this._populate(addressData);
     this._hideSuggestions();
 
-    const selectEvent = new CustomEvent<SelectEventDetail>(
-      "netsi-address:select",
-      {
-        detail: { address: addressData },
-        bubbles: true,
-        composed: true,
-      },
-    );
-    this.dispatchEvent(selectEvent);
+    const detail: SelectEventDetail = { address: item.adresse };
+    const event = new CustomEvent("netsi-address:select", {
+      detail,
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(event);
+
+    if (this._inputEl) {
+      this._inputEl.value = item.tekst;
+    }
+
+    this._populate(item.adresse);
   }
 
   private _populate(addressData: DawaAddress): void {
     if (!this._config.ui) return;
 
-    // First, handle the main address input field specially.
-    if (this._inputEl) {
-      this._inputEl.value = addressData.adressebetegnelse;
-    }
-
-    // Then, iterate over the rest of the UI mappings.
-    for (const [key, mapping] of Object.entries(this._config.ui)) {
-      if (!mapping || key === "address") continue;
-
+    Object.entries(this._config.ui).forEach(([key, mapping]) => {
+      if (!mapping) return;
+      
       const { selector, mapper } = typeof mapping === "string"
-        ? { selector: mapping, mapper: undefined }
+        ? { selector: mapping, mapper: (val: any) => String(val ?? "") }
         : mapping;
 
-      const targetEl = document.querySelector(selector) as
+      const element = document.querySelector(selector) as
         | HTMLInputElement
-        | null;
-      if (targetEl) {
-        const rawValue = this._getValue(addressData, key);
-        targetEl.value = mapper ? mapper(rawValue, addressData) : rawValue;
+        | HTMLSelectElement
+        | HTMLTextAreaElement;
+      
+      if (element) {
+        const value = this._getValue(addressData, key);
+        element.value = mapper(value, addressData);
       }
-    }
+    });
   }
 
   private _getValue(obj: object, path: string): any {
-    // Navigate through the object path to get the final value.
-    return path.split(".").reduce((acc: any, part) => acc && acc[part], obj);
+    return path.split(".").reduce(
+      (acc, part) => acc && acc[part],
+      obj as any,
+    );
   }
 }
 
-customElements.define("netsi-address", NetsiAddress);
+if (typeof window !== "undefined" && window.customElements) {
+  customElements.define("netsi-address", NetsiAddress);
+}
 
 export default NetsiAddress;

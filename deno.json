@@ -1,7 +1,11 @@
 {
   "name": "@netsi/address-component",
   "version": "1.0.0",
-  "exports": "./src/netsi-address.ts",
+  "description": "A fully encapsulated web component for Danish address lookup using DAWA.",
+  "exports": {
+    ".": "./src/netsi-address.ts",
+    "./svelte": "./src/netsi-address.ts"
+  },
   "license": "MIT",
   "compilerOptions": {
     "lib": ["deno.window", "dom", "dom.iterable"]
