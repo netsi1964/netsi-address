@@ -1,6 +1,6 @@
 {
   "name": "@netsi/address-component",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A fully encapsulated web component for Danish address lookup using DAWA.",
   "exports": {
     ".": "./src/netsi-address.ts",
