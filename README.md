@@ -1,32 +1,40 @@
 # Netsi Address Component
 
 A fully encapsulated, zero-dependency web component for simple and robust Danish
-address lookup using Dataforsyningen's DAWA API.
+address lookup using Dataforsyningen's DAWA API. This component is written in
+TypeScript and provides strong typing for all configurations.
 
-This component is designed as a "headless" controller that attaches to your
-existing form fields, making it extremely flexible to integrate into any
-project.
+It is designed as a "headless" controller that attaches to your existing form
+fields, making it extremely flexible to integrate into any project.
 
 ## Features
 
 - **Headless & Flexible**: Attaches to any form structure using CSS selectors.
+- **TypeScript First**: Provides strong types for configuration and API responses.
 - **Smart Defaults**: Works out-of-the-box with a standard set of element IDs.
   No configuration needed for a basic setup.
 - **Advanced Data Mapping**: Use a `mapper` function to transform API data
   before it's displayed in your UI.
-- **Zero Dependencies**: Written in plain, modern JavaScript.
+- **Zero Dependencies**: Compiles to a single, dependency-free JavaScript file.
 - **Configurable**: Easily configured, including all
   [DAWA API parameters](https://dawadocs.dataforsyningen.dk/dok/api/adresse#s%C3%B8gning).
 - **Fuzzy Search**: Optionally falls back to a "fuzzy" search if no exact
   matches are found.
 - **Keyboard Navigation**: Full support for `ArrowUp`, `ArrowDown`, `Enter`, and
   `Escape`.
+- **Tested**: Includes a suite of unit tests for core logic.
 
 ## Demo
 
-You may start a local demo from terminal:
+A local demo is available in the `/demo` directory. To run it, you first need to
+build the component from its TypeScript source.
 
 ```bash
+# First, install Deno: https://deno.com/manual/getting_started/installation
+# Then, build the project:
+deno task build
+
+# Serve the demo folder
 npx http-server -o demo/index.html
 ```
 
@@ -35,22 +43,24 @@ npx http-server -o demo/index.html
 ### Via JSR (Recommended)
 
 ```bash
-deno add @netsi/address-component
+deno add @netsi/address
 ```
 
 ### Via NPM
 
 ```bash
-npm install @netsi/address-component
+npm install @netsi/address
 ```
 
 ### Via CDN
 
+The component's source is TypeScript, so direct use in the browser requires a build step. For CDN usage, it's recommended to use a service that transpiles and bundles JSR packages, like esm.sh.
+
 ```html
-<script
-  type="module"
-  src="https://jsr.io/@netsi/address-component/2.1.0/src/netsi-address.js"
-></script>
+<script type="module">
+  // The 'netsi-address' element is automatically defined.
+  import "https://esm.sh/@netsi/address";
+</script>
 ```
 
 ## Usage
@@ -162,6 +172,21 @@ selectors. The keys are dot-notation paths to the data in the DAWA API response.
 | `adgangsadresse.postnummer.navn` | `#postnrnavn`    |
 | `adgangsadresse.kommune.kode`    | `#kommunekode`   |
 | `adgangsadresse.kommune.navn`    | `#kommune`       |
+
+## Development
+
+This project uses Deno for development.
+
+- **To build the browser-compatible bundle for the demo:**
+  ```bash
+  deno task build
+  ```
+  This command uses `esbuild` to compile `src/netsi-address.ts` into `demo/netsi-address.bundle.js`.
+
+- **To run the tests:**
+  ```bash
+  deno task test
+  ```
 
 ## Events
 

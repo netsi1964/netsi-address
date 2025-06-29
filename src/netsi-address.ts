@@ -99,14 +99,17 @@ class NetsiAddress extends HTMLElement {
   connectedCallback() {}
 
   disconnectedCallback() {
-    this._inputEl?.removeEventListener(
-      "input",
-      this._debouncedLookup as EventListener,
-    );
-    this._inputEl?.removeEventListener("keydown", this._boundHandleKeydown);
-    document.removeEventListener("click", this._boundHandleClickOutside);
-    window.removeEventListener("resize", this._boundReposition);
-    window.removeEventListener("scroll", this._boundReposition, true);
+    if (this._inputEl?.removeEventListener) {
+      this._inputEl.removeEventListener("input", this._debouncedLookup as EventListener);
+      this._inputEl.removeEventListener("keydown", this._boundHandleKeydown);
+    }
+    if (document?.removeEventListener) {
+      document.removeEventListener("click", this._boundHandleClickOutside);
+    }
+    if (window?.removeEventListener) {
+      window.removeEventListener("resize", this._boundReposition);
+      window.removeEventListener("scroll", this._boundReposition, true);
+    }
     this._suggestionsEl?.remove();
     document.getElementById("netsi-address-styles")?.remove();
   }
@@ -156,20 +159,25 @@ class NetsiAddress extends HTMLElement {
   }
 
   private _createSuggestionsUI(): void {
-    this._suggestionsEl = document.createElement("ul");
-    this._suggestionsEl.id = "netsi-suggestions-list";
-    document.body.appendChild(this._suggestionsEl);
+    if (document?.createElement) {
+      this._suggestionsEl = document.createElement("ul");
+      this._suggestionsEl.id = "netsi-suggestions-list";
+      document.body.appendChild(this._suggestionsEl);
+    }
   }
 
   private _attachListeners(): void {
-    this._inputEl?.addEventListener(
-      "input",
-      this._debouncedLookup as EventListener,
-    );
-    this._inputEl?.addEventListener("keydown", this._boundHandleKeydown);
-    document.addEventListener("click", this._boundHandleClickOutside);
-    window.addEventListener("resize", this._boundReposition);
-    window.addEventListener("scroll", this._boundReposition, true);
+    if (this._inputEl?.addEventListener) {
+      this._inputEl.addEventListener("input", this._debouncedLookup as EventListener);
+      this._inputEl.addEventListener("keydown", this._boundHandleKeydown);
+    }
+    if (document?.addEventListener) {
+      document.addEventListener("click", this._boundHandleClickOutside);
+    }
+    if (window?.addEventListener) {
+      window.addEventListener("resize", this._boundReposition);
+      window.addEventListener("scroll", this._boundReposition, true);
+    }
   }
 
   private _repositionSuggestions(): void {
@@ -181,33 +189,34 @@ class NetsiAddress extends HTMLElement {
   }
 
   private _renderSuggestions(suggestions: Suggestion[]): void {
-    if (!this._suggestionsEl) return;
-    this._suggestionsEl.innerHTML = "";
-    this._highlightedIndex = -1;
-
-    if (suggestions.length === 0) {
-      this._hideSuggestions();
-      return;
-    }
-
-    suggestions.forEach((item) => {
-      const li = document.createElement("li");
-      const textNode = document.createElement("span");
-      textNode.textContent = item.tekst;
-      li.appendChild(textNode);
-
-      if (item.isFuzzy) {
-        const fuzzySpan = document.createElement("span");
-        fuzzySpan.className = "fuzzy-indicator";
-        fuzzySpan.textContent = "(Mente du?)";
-        li.appendChild(fuzzySpan);
+    if (this._suggestionsEl) {
+      this._suggestionsEl.innerHTML = "";
+      this._highlightedIndex = -1;
+  
+      if (suggestions.length === 0) {
+        this._hideSuggestions();
+        return;
       }
-
-      li.addEventListener("click", () => this.select(item));
-      this._suggestionsEl.appendChild(li);
-    });
-
-    this._showSuggestions();
+  
+      suggestions.forEach((item) => {
+        const li = document.createElement("li");
+        const textNode = document.createElement("span");
+        textNode.textContent = item.tekst;
+        li.appendChild(textNode);
+  
+        if (item.isFuzzy) {
+          const fuzzySpan = document.createElement("span");
+          fuzzySpan.className = "fuzzy-indicator";
+          fuzzySpan.textContent = "(Mente du?)";
+          li.appendChild(fuzzySpan);
+        }
+  
+        li.addEventListener("click", () => this.select(item));
+        this._suggestionsEl!.appendChild(li);
+      });
+  
+      this._showSuggestions();
+    }
   }
 
   private _updateHighlight(): void {

@@ -294,7 +294,7 @@ For example, to get the street name, the mapping path would be
 - **Reusability**: The component must be framework-agnostic and usable in any
   project via standard ES Modules.
 - **Maintainability**: Code should be well-commented, self-contained, and easy
-  to understand.
+  to understand. The codebase is written in TypeScript and includes unit tests.
 
 ## 8. Success Metrics
 

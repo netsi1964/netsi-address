@@ -4,6 +4,7 @@
   "exports": "./src/netsi-address.ts",
   "license": "MIT",
   "tasks": {
-    "build": "deno run -A npm:esbuild --bundle src/netsi-address.ts --outfile=demo/netsi-address.bundle.js --format=esm"
+    "build": "deno run -A npm:esbuild --bundle src/netsi-address.ts --outfile=demo/netsi-address.bundle.js --format=esm",
+    "test": "deno test"
   }
 }
