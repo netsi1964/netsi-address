@@ -43,13 +43,13 @@ npx http-server -o demo/index.html
 ### Via JSR (Recommended)
 
 ```bash
-deno add @netsi/address
+deno add @netsi/address-component
 ```
 
 ### Via NPM
 
 ```bash
-npm install @netsi/address
+npm install @netsi/address-component
 ```
 
 ### Via CDN
@@ -59,7 +59,7 @@ The component's source is TypeScript, so direct use in the browser requires a bu
 ```html
 <script type="module">
   // The 'netsi-address' element is automatically defined.
-  import "https://esm.sh/@netsi/address";
+  import "https://esm.sh/jsr/@netsi/address-component";
 </script>
 ```
 
