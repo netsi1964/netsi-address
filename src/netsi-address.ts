@@ -1,5 +1,3 @@
-/// <reference lib="dom" />
-
 // Type definitions based on PRD.md and DAWA API structure
 
 type MapperFunction = (value: any, fullObject: DawaAddress) => string;

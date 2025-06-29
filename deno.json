@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "exports": "./src/netsi-address.ts",
   "license": "MIT",
+  "compilerOptions": {
+    "lib": ["deno.window", "dom", "dom.iterable"]
+  },
   "tasks": {
     "build": "deno run -A npm:esbuild --bundle src/netsi-address.ts --outfile=demo/netsi-address.bundle.js --format=esm",
     "test": "deno test"
