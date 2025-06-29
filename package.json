@@ -1,0 +1,24 @@
+{
+  "name": "@netsi/address-component",
+  "version": "1.0.0",
+  "description": "A fully encapsulated web component for Danish address lookup using DAWA.",
+  "type": "module",
+  "main": "./src/netsi-address.js",
+  "exports": {
+    ".": "./src/netsi-address.js"
+  },
+  "scripts": {
+    "dev": "http-server . -o demo/index.html -c-1",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "web component",
+    "custom element",
+    "address",
+    "dawa",
+    "denmark",
+    "netsi1964"
+  ],
+  "author": "netsi1964",
+  "license": "MIT"
+}

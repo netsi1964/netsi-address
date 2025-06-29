@@ -101,9 +101,13 @@ fast, and intuitive address input field.
 
 ### 5.1. Example DAWA API Response
 
-Below is an example of the JSON object returned for a single address from the DAWA API. Developers can use dot-notation to access any value within this structure for mapping to UI elements (see `REQ-05`).
+Below is an example of the JSON object returned for a single address from the
+DAWA API. Developers can use dot-notation to access any value within this
+structure for mapping to UI elements (see `REQ-05`).
 
-For example, to get the street name, the mapping path would be `adgangsadresse.vejstykke.navn`. To get the zip code, the path is `adgangsadresse.postnummer.nr`.
+For example, to get the street name, the mapping path would be
+`adgangsadresse.vejstykke.navn`. To get the zip code, the path is
+`adgangsadresse.postnummer.nr`.
 
 ```json
 {

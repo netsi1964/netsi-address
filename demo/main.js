@@ -1,4 +1,4 @@
-import "../src/netsi-address.js";
+import "./netsi-address.bundle.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const addressComponent = document.getElementById("address-component");
