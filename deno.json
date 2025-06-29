@@ -1,0 +1,5 @@
+{
+  "name": "@netsi/address-component",
+  "version": "1.0.0",
+  "exports": "./src/netsi-address.js"
+}

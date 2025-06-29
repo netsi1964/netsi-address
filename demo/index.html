@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netsi Address Component - Demo</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+    <script type="module" src="./main.js?d"></script>
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Netsi Address Component Demo</h1>
+        <p>
+          Denne demo viser den avancerede konfiguration med en <code>mapper</code>
+          funktion.
+        </p>
+      </header>
+
+      <form onsubmit="return false;">
+        <netsi-address id="address-component"></netsi-address>
+
+        <div class="form-group">
+          <label for="address">Søg adresse</label>
+          <input
+            type="text"
+            id="address"
+            name="address"
+            autocomplete="off"
+            placeholder="Eks: Rådhuspladsen 1, 1550"
+          >
+        </div>
+
+        <div class="grid">
+          <label>Vejnavn<input type="text" id="vejnavn" readonly></label>
+          <label>Husnr<input type="text" id="husnr" readonly></label>
+        </div>
+
+        <div class="grid">
+          <label>Postnummer<input type="text" id="zip" readonly></label>
+          <label>by<input type="text" id="city" readonly></label>
+          </div>
+
+        <!-- ... other fields ... -->
+          <div class="grid">
+          <label>Kommune<input type="text" id="kommune" readonly></label>
+          <div>
+            <label>Adresse opdateret (formateret)</label>
+            <span id="updated-date" style="font-weight: bold">-</span>
+          </div>
+        </div>
+      </form>
+
+      <details>
+        <summary>Event Log</summary>
+        <pre id="event-log">Venter på events...</pre>
+      </details>
+    </main>
+  </body>
+</html>
