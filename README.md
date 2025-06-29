@@ -199,3 +199,6 @@ addressComponent.addEventListener("netsi-address:select", (event) => {
   console.log("Address selected:", event.detail);
 });
 ```
+
+---
+*This package was added to JSR and NPM with the help of Cursor. A fully encapsulated web component for Danish address lookup using DAWA.*
